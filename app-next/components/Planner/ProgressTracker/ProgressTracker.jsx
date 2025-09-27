@@ -4,14 +4,14 @@ export default function ProgressTracker({
   currentPhase,
   onPhaseChange,
   isSoloTrip,
+  isOwner,
 }) {
   let phases = [
-    { key: "preferences", label: "1. Preferences" },
-    { key: "shortlisting", label: "2. Shortlist" },
-    { key: "voting", label: "3. Vote" },
-    { key: "itinerary", label: "4. Itinerary" },
-    { key: "accommodations", label: "5. Hotel" },
-    { key: "flights", label: "6. Flights" },
+    { key: "shortlisting", label: "1. Shortlist" },
+    { key: "voting", label: "2. Vote" },
+    { key: "itinerary", label: "3. Itinerary" },
+    { key: "accommodations", label: "4. Hotel" },
+    { key: "flights", label: "5. Flights" },
   ];
 
   if (isSoloTrip) {
@@ -34,8 +34,7 @@ export default function ProgressTracker({
           <button
             key={phase.key}
             className={`${styles.progressStep} ${statusClass}`}
-            // A step is clickable only if it's already completed
-            disabled={!isCompleted}
+            disabled={!isOwner || isActive}
             onClick={() => onPhaseChange(phase.key)}
           >
             {phase.label}
