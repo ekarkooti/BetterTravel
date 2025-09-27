@@ -71,8 +71,8 @@
   margin-bottom: 1rem;
   padding: 0.75rem 1rem;
   border-radius: 8px;
-  background: linear-gradient(180deg, rgba(255,245,235,1), rgba(255,250,240,1));
-  border: 1px solid rgba(255,200,120,0.35);
+  background: linear-gradient(180deg, rgba(255, 245, 235, 1), rgba(255, 250, 240, 1));
+  border: 1px solid rgba(255, 200, 120, 0.35);
   color: #7a4b00;
   display: flex;
   align-items: center;
@@ -94,7 +94,7 @@
   border-radius: 6px;
   text-decoration: none;
   font-weight: 700;
-  box-shadow: 0 6px 18px rgba(0,87,255,0.18);
+  box-shadow: 0 6px 18px rgba(0, 87, 255, 0.18);
 }
 
 .authLink:hover {
@@ -109,6 +109,23 @@
   border: 1px solid #f3c1c1;
   color: #7a1a1a;
   font-weight: 600;
+}
+
+.errorText {
+  color: #d93025;
+  font-size: 0.875rem;
+  margin-top: 6px;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.inputError {
+  border-color: #d93025 !important;
+  background-color: #fbe9e7;
+}
+
+.inputError:focus {
+  box-shadow: 0 0 0 2px rgba(217, 48, 37, 0.25);
 }
 
 /* Button alignment utility */

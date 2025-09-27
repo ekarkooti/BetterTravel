@@ -287,10 +287,7 @@ export default function PlannerPage() {
 
   const handleGetSuggestions = async (preferenceText) => {
     setError(null);
-    if (!isOwner) {
-      setError("Only the trip owner can get AI suggestions.");
-      return;
-    }
+    // **FIX 1:** The top-level owner check is removed.
     const token = localStorage.getItem("token");
     setIsLoading(true);
     try {
@@ -311,7 +308,11 @@ export default function PlannerPage() {
       }
       const returnedSuggestions = await response.json();
       setSuggestions(returnedSuggestions.data);
-      await updatePlanningPhase("shortlisting");
+
+      // Only advance the phase if the user is the owner.
+      if (isOwner) {
+        await updatePlanningPhase("shortlisting");
+      }
     } catch (error) {
       setError(
         `Could not get suggestions: ${error.message}. Please try again.`
@@ -591,7 +592,15 @@ export default function PlannerPage() {
   const renderMainContent = () => {
     switch (planningPhase) {
       case "preferences":
-        return (
+        // **FIX 2:** This now checks if suggestions exist and shows them even in the preferences phase.
+        return Array.isArray(suggestions) && suggestions.length > 0 ? (
+          <SuggestionGrid
+            suggestions={suggestions}
+            onAddToShortlist={handleAddToShortlist}
+            onRemoveFromShortlist={handleRemoveFromShortlist}
+            shortlistedItems={shortlistedItems}
+          />
+        ) : (
           <EmptyState destination={tripData?.destinations?.[0]?.city_name} />
         );
       case "shortlisting":
@@ -667,8 +676,9 @@ export default function PlannerPage() {
         <ErrorBanner message={error} onDismiss={() => setError(null)} />
         <ProgressTracker
           currentPhase={planningPhase}
-          onPhaseChange={setPlanningPhase}
+          onPhaseChange={updatePlanningPhase}
           isSoloTrip={isSoloTrip}
+          isOwner={isOwner}
         />
         <div className={styles.plannerContent}>
           <aside className={styles.sidebarContainer}>

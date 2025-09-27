@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./CreateTripForm.module.css";
 import Button from "../Button/Button";
 
@@ -8,40 +9,47 @@ export default function CreateTripForm({
   isLoading,
   onDismissError,
 }) {
-  const [tripName, setTripName] = useState("Summer Trip to Paris");
-  const [destination, setDestination] = useState("Paris, France");
+  const router = useRouter();
+  const [tripName, setTripName] = useState("My Trip to Rome");
+  const [destination, setDestination] = useState("Rome, Italy");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [authError, setAuthError] = useState(null);
-  const [formError, setFormError] = useState(null);
+  const [errors, setErrors] = useState({});
 
   const handleCreate = () => {
-    onDismissError(); // Dismiss any previous errors
-    setAuthError(null);
-    setFormError(null);
-    // Require user to be logged in before creating a trip
-    const token =
-      typeof window !== "undefined"
-        ? localStorage.getItem("token") || localStorage.getItem("authToken") || localStorage.getItem("accessToken")
-        : null;
-    if (!token) {
-      setAuthError(
-        "You must be logged in to create a trip. Please log in or create an account to continue."
-      );
+    onDismissError();
+
+    const newErrors = {};
+    if (!tripName) newErrors.tripName = "Trip name is required.";
+    if (!destination) newErrors.destination = "Destination is required.";
+    if (!startDate) newErrors.startDate = "Start date is required.";
+    if (!endDate) newErrors.endDate = "End date is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
-    if (!tripName || !destination || !startDate || !endDate) {
-      const msg = "Please fill out all fields.";
-      setFormError(msg);
-      // also notify parent for backward compatibility
-      onTripCreate({ error: msg });
+
+    setErrors({}); // Clear errors if validation passes
+
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("token") ||
+          localStorage.getItem("authToken") ||
+          localStorage.getItem("accessToken")
+        : null;
+
+    if (!token) {
+      router.push("/login");
       return;
     }
 
     const destinationParts = destination.split(",").map((part) => part.trim());
     if (destinationParts.length !== 2) {
-      onTripCreate({ error: "Destination must be in 'City, Country' format." });
+      setErrors({
+        destination: "Destination must be in 'City, Country' format.",
+      });
       return;
     }
 
@@ -51,9 +59,7 @@ export default function CreateTripForm({
     const duration_days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
 
     if (duration_days < 1) {
-      const msg = "End date must be after the start date.";
-      setFormError(msg);
-      onTripCreate({ error: msg });
+      setErrors({ endDate: "End date must be on or after the start date." });
       return;
     }
 
@@ -71,8 +77,7 @@ export default function CreateTripForm({
         },
       ],
     };
-    // clear any local errors before creating
-    setFormError(null);
+
     onTripCreate(formData);
   };
 
@@ -83,40 +88,34 @@ export default function CreateTripForm({
         <p className={styles.subtitle}>
           Fill out the details below to get started with your next adventure.
         </p>
-        {authError ? (
-          <div className={styles.authMessage} role="alert">
-            <p>{authError}</p>
-            <div>
-              <a className={styles.authLink} href="/login">
-                Go to Login
-              </a>
-            </div>
-          </div>
-        ) : null}
-        {formError ? (
-          <div className={styles.formError} role="alert">
-            {formError}
-          </div>
-        ) : null}
+
         <div className={styles.formGroup}>
           <label htmlFor="trip-name">Trip Name</label>
           <input
             id="trip-name"
             type="text"
-            placeholder="e.g., Summer Trip to Paris"
+            placeholder="e.g., My Trip to Rome"
             value={tripName}
             onChange={(e) => setTripName(e.target.value)}
+            className={errors.tripName ? styles.inputError : ""}
           />
+          {errors.tripName && (
+            <p className={styles.errorText}>{errors.tripName}</p>
+          )}
         </div>
         <div className={styles.formGroup}>
           <label htmlFor="destination">Destination</label>
           <input
             id="destination"
             type="text"
-            placeholder="e.g., Paris, France"
+            placeholder="e.g., Rome, Italy"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
+            className={errors.destination ? styles.inputError : ""}
           />
+          {errors.destination && (
+            <p className={styles.errorText}>{errors.destination}</p>
+          )}
         </div>
         <div className={`${styles.formGroup} ${styles.dateInputs}`}>
           <div style={{ flex: 1 }}>
@@ -126,7 +125,11 @@ export default function CreateTripForm({
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
+              className={errors.startDate ? styles.inputError : ""}
             />
+            {errors.startDate && (
+              <p className={styles.errorText}>{errors.startDate}</p>
+            )}
           </div>
           <div style={{ flex: 1 }}>
             <label htmlFor="end-date">End Date</label>
@@ -135,7 +138,11 @@ export default function CreateTripForm({
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
+              className={errors.endDate ? styles.inputError : ""}
             />
+            {errors.endDate && (
+              <p className={styles.errorText}>{errors.endDate}</p>
+            )}
           </div>
         </div>
         <Button onClick={handleCreate} disabled={isLoading}>
